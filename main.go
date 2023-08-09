@@ -16,5 +16,6 @@ func main() {
 
 	fmt.Println("ELASTIC ENGINE PROJECT - RUDI LESMANA")
 	fmt.Println(db)
+
 	defer db.Close()
 }
