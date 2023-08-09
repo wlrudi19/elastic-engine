@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/wlrudi19/elastic-engine/config"
+	_ "github.com/lib/pq"
 )
 
 type Database interface {
@@ -20,20 +20,20 @@ func NewLoad() Database {
 }
 
 // LoadConfig implements Database.
-func (*database) LoadConfig() config.Config {
+func (d *database) LoadConfig() Config {
 	return Config{
 		Database: DatabaseConfig{
 			Host:     "localhost",
 			Port:     5432,
 			Name:     "projectrudi",
 			Username: "rudilesmana",
-			Password: "rudilesmana2023",
+			Password: "",
 		},
 	}
 }
 
 // TestConnection implements Database.
-func (*database) TestConnection(config config.DatabaseConfig) (*sql.DB, error) {
+func (d *database) TestConnection(config DatabaseConfig) (*sql.DB, error) {
 	connString := fmt.Sprintf(
 		"host=%s port=%d dbname=%s user=%s password=%s sslmode=disable",
 		config.Host, config.Port, config.Username, config.Password,
