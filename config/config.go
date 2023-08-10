@@ -25,8 +25,8 @@ func (d *database) LoadConfig() Config {
 		Database: DatabaseConfig{
 			Host:     "localhost",
 			Port:     5432,
-			Name:     "projectrudi",
-			Username: "rudilesmana",
+			Name:     "",
+			Username: "",
 			Password: "",
 		},
 	}
@@ -36,7 +36,7 @@ func (d *database) LoadConfig() Config {
 func (d *database) TestConnection(config DatabaseConfig) (*sql.DB, error) {
 	connString := fmt.Sprintf(
 		"host=%s port=%d dbname=%s user=%s password=%s sslmode=disable",
-		config.Host, config.Port, config.Username, config.Password,
+		config.Host, config.Port, config.Name, config.Username, config.Password,
 	)
 
 	db, err := sql.Open("postgres", connString)
