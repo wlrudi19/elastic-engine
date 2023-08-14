@@ -1,16 +1,13 @@
 package api
 
 import (
-	"github.com/julienschmidt/httprouter"
-	"github.com/wlrudi19/elastic-engine/helper"
+	"github.com/go-chi/chi"
 )
 
-func NewProductRouter(productController ProductController) *httprouter.Router {
-	router := httprouter.New()
+func NewProductRouter(productHandler ProductHandler) *chi.Mux {
+	router := chi.NewRouter()
 
-	router.POST("/api/products/create", productController.CreateProductController)
-
-	router.PanicHandler = helper.ErrorHandler
+	router.Post("/api/products/create", productHandler.CreateProductHandler)
 
 	return router
 }

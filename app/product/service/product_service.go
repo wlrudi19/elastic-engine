@@ -3,48 +3,53 @@ package service
 import (
 	"context"
 	"database/sql"
+	"log"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/wlrudi19/elastic-engine/app/product/model"
 	"github.com/wlrudi19/elastic-engine/app/product/repository"
-	"github.com/wlrudi19/elastic-engine/helper"
 )
 
-type ProductService interface {
-	CreateProductService(ctx context.Context, request model.CreateProductRequest) model.ProductResponse
+type ProductLogic interface {
+	CreateProductLogic(ctx context.Context, req model.CreateProductRequest) error
 }
 
-type productservice struct {
+type productlogic struct {
 	ProductRepository repository.ProductRepository
-	DB                *sql.DB
-	Validate          *validator.Validate
+	db                *sql.DB
 }
 
-func NewProductService(productRepository repository.ProductRepository, DB *sql.DB, validate *validator.Validate) ProductService {
-	return &productservice{
+func NewProductLogic(productRepository repository.ProductRepository, db *sql.DB) ProductLogic {
+	return &productlogic{
 		ProductRepository: productRepository,
-		DB:                DB,
-		Validate:          validate,
+		db:                db,
 	}
 }
 
-func (ps *productservice) CreateProductService(ctx context.Context, request model.CreateProductRequest) model.ProductResponse {
-	err := ps.Validate.Struct(request)
-	helper.PanicIfError(err)
+func (l *productlogic) CreateProductLogic(ctx context.Context, req model.CreateProductRequest) error {
+	log.Printf("[%s] create new product: %s", ctx.Value("productName"), req.Name)
 
-	tx, err := ps.DB.Begin()
-	helper.PanicIfError(err)
-	defer helper.CommitOrRollback(tx)
+	tx, err := l.db.Begin()
+
+	if err != nil {
+		log.Fatalf("failed to create product :%v", err)
+		return err
+	}
 
 	product := model.Product{
-		Name:        request.Name,
-		Description: request.Description,
-		Amount:      request.Amount,
-		Stok:        request.Stok,
+		Name:        req.Name,
+		Description: req.Description,
+		Amount:      req.Amount,
+		Stok:        req.Stok,
 	}
 
-	product, err = ps.ProductRepository.CreateProduct(ctx, tx, product)
-	helper.PanicIfError(err)
+	err = l.ProductRepository.CreateProduct(ctx, tx, product)
 
-	return model.ToProductResponse(product)
+	if err != nil {
+		log.Fatalf("failed to create product :%v", err)
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
 }
