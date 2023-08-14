@@ -14,11 +14,3 @@ type CreateProductRequest struct {
 	Amount      string `json:"amount"`
 	Stok        int    `json:"stok"`
 }
-
-type ProductResponse struct {
-	Id          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Amount      string `json:"amount"`
-	Stok        int    `json:"stok"`
-}

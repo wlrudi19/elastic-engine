@@ -1,38 +1,87 @@
 package api
 
 import (
+	"context"
+	"encoding/json"
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/wlrudi19/elastic-engine/app/product/model"
 	"github.com/wlrudi19/elastic-engine/app/product/service"
-	"github.com/wlrudi19/elastic-engine/helper"
+	httputils "github.com/wlrudi19/elastic-engine/helper/http"
 )
 
-type ProductController interface {
-	CreateProductController(writer http.ResponseWriter, request *http.Request, params httprouter.Params)
+type ProductHandler interface {
+	CreateProductHandler(writer http.ResponseWriter, req *http.Request)
 }
 
-type productcontroller struct {
-	ProductService service.ProductService
+type producthandler struct {
+	ProductLogic service.ProductLogic
 }
 
-func NewProductController(productService service.ProductService) ProductController {
-	return &productcontroller{
-		ProductService: productService,
+func NewProductHandler(productLogic service.ProductLogic) ProductHandler {
+	return &producthandler{
+		ProductLogic: productLogic,
 	}
 }
 
-func (pc *productcontroller) CreateProductController(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
-	productCreateRequest := model.CreateProductRequest{}
-	helper.ReadFromRequestBody(request, &productCreateRequest)
+func (h *producthandler) CreateProductHandler(writer http.ResponseWriter, req *http.Request) {
+	var jsonReq model.CreateProductRequest
 
-	categoryResponse := pc.ProductService.CreateProductService
-	webResponse := helper.WebResponse{
-		Code:   200,
-		Status: "OK",
-		Data:   categoryResponse,
+	err := json.NewDecoder(req.Body).Decode(&jsonReq)
+
+	if err != nil {
+		respon := []httputils.StandardError{
+			httputils.StandardError{
+				Code:   "400",
+				Title:  "Bad Request",
+				Detail: "Permintaan tidak valid. Format JSON tidak sesuai",
+				Object: httputils.ErrorObject{},
+			},
+		}
+		httputils.WriteErrorResponse(writer, http.StatusBadRequest, respon)
+		return
 	}
 
-	helper.WriteToResponseBody(writer, webResponse)
+	err = h.ProductLogic.CreateProductLogic(context.TODO(), jsonReq)
+	if err != nil {
+		respon := []httputils.StandardError{
+			httputils.StandardError{
+				Code:   "500",
+				Title:  "Internal server error",
+				Detail: "Terjadi kesalahan internal pada server",
+				Object: httputils.ErrorObject{},
+			},
+		}
+		httputils.WriteErrorResponse(writer, http.StatusInternalServerError, respon)
+		return
+	}
+
+	status := httputils.StandardStatus{
+		ErrorCode: 201,
+		Message:   "Product created successfully",
+	}
+
+	envelope := httputils.StandardEnvelope{
+		Status: &status,
+		Errors: nil,
+	}
+
+	responFix, err := json.Marshal(envelope)
+	if err != nil {
+		respon := []httputils.StandardError{
+			httputils.StandardError{
+				Code:   "500",
+				Title:  "Internal server error",
+				Detail: "Terjadi kesalahan internal pada server",
+				Object: httputils.ErrorObject{},
+			},
+		}
+		httputils.WriteErrorResponse(writer, http.StatusInternalServerError, respon)
+		return
+	}
+
+	contentType := httputils.NewContentTypeDecorator("application/json")
+	httpStatus := http.StatusCreated
+
+	httputils.WriteResponse(writer, responFix, httpStatus, contentType)
 }
