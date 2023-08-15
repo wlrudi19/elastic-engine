@@ -14,3 +14,14 @@ type CreateProductRequest struct {
 	Amount      string `json:"amount"`
 	Stok        int    `json:"stok"`
 }
+
+type FindProductRequest struct {
+	Id int `json:"id"`
+}
+
+type FindProductResponse struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Amount      string `json:"amount"`
+	Stok        int    `json:"stok"`
+}
