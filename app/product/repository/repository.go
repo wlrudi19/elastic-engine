@@ -11,6 +11,8 @@ import (
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, tx *sql.Tx, product model.Product) error
 	FindProduct(ctx context.Context, tx *sql.Tx, id int) (model.FindProductResponse, error)
+	FindProductAll(ctx context.Context, tx *sql.Tx) ([]model.Product, error)
+	DeleteProduct(ctx context.Context, tx *sql.Tx, id int) error
 }
 
 type productrepository struct {
@@ -28,7 +30,7 @@ func (pr *productrepository) CreateProduct(ctx context.Context, tx *sql.Tx, prod
 	err := tx.QueryRowContext(ctx, sql, product.Name, product.Description, product.Amount, product.Stok).Scan(&id)
 
 	if err != nil {
-		log.Printf("[QUERY]failed insert into database :%v", err)
+		log.Printf("[QUERY] failed insert into database :%v", err)
 		return err
 	}
 
@@ -55,4 +57,50 @@ func (pr *productrepository) FindProduct(ctx context.Context, tx *sql.Tx, id int
 	}
 
 	return product, nil
+}
+
+func (pr *productrepository) FindProductAll(ctx context.Context, tx *sql.Tx) ([]model.Product, error) {
+	log.Printf("[%s][QUERY] find all products", ctx.Value("productAll"))
+
+	sql := "select id, name, description, amount, stok from products where deleted_on isnull"
+	rows, err := tx.QueryContext(ctx, sql)
+
+	if err != nil {
+		log.Printf("[QUERY]] failed to finding products, %v", err)
+		return nil, err
+	}
+
+	var products []model.Product
+	for rows.Next() {
+		var product model.Product
+		err := rows.Scan(
+			&product.Id,
+			&product.Name,
+			&product.Description,
+			&product.Amount,
+			&product.Stok,
+		)
+
+		if err != nil {
+			log.Fatalf("[QUERY] failed to finding product row: %v", err)
+			return nil, err
+		}
+		products = append(products, product)
+	}
+
+	return products, nil
+}
+
+func (pr *productrepository) DeleteProduct(ctx context.Context, tx *sql.Tx, id int) error {
+	log.Printf("[%s][QUERY] deleting product with id: %d", ctx.Value("productId"), id)
+
+	sql := "update products set deleted_on = now() where id = $1"
+	_, err := tx.ExecContext(ctx, sql, id)
+
+	if err != nil {
+		log.Printf("[QUERY] failed deleting product, %v", err)
+		return err
+	}
+
+	return nil
 }
