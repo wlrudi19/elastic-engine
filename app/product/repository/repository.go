@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 
 	"github.com/wlrudi19/elastic-engine/app/product/model"
@@ -94,8 +95,23 @@ func (pr *productrepository) FindProductAll(ctx context.Context, tx *sql.Tx) ([]
 func (pr *productrepository) DeleteProduct(ctx context.Context, tx *sql.Tx, id int) error {
 	log.Printf("[%s][QUERY] deleting product with id: %d", ctx.Value("productId"), id)
 
+	var deletedOn sql.NullTime
+
+	checkSQL := "SELECT deleted_on FROM products WHERE id = $1"
+	err := tx.QueryRowContext(ctx, checkSQL, id).Scan(&deletedOn)
+	if err != nil {
+		log.Printf("[QUERY] failed to deleting product: %v", err)
+		return err
+	}
+
+	if deletedOn.Valid {
+		err = errors.New("product has been deleted before")
+		log.Printf("[QUERY] failed to deleting product:%v", err)
+		return err
+	}
+
 	sql := "update products set deleted_on = now() where id = $1"
-	_, err := tx.ExecContext(ctx, sql, id)
+	_, err = tx.ExecContext(ctx, sql, id)
 
 	if err != nil {
 		log.Printf("[QUERY] failed deleting product, %v", err)

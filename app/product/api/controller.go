@@ -260,6 +260,30 @@ func (h *producthandler) DeleteProductAllHandler(writer http.ResponseWriter, req
 
 	err = h.ProductLogic.DeleteProductLogic(context.TODO(), jsonReq.Id)
 	if err != nil {
+		if strings.Contains(err.Error(), "sql: no rows in result set") {
+			respon := []httputils.StandardError{
+				{
+					Code:   "404",
+					Title:  "Not found",
+					Detail: "Product not found",
+					Object: httputils.ErrorObject{},
+				},
+			}
+			httputils.WriteErrorResponse(writer, http.StatusInternalServerError, respon)
+			return
+		} else if strings.Contains(err.Error(), "product has been deleted before") {
+			respon := []httputils.StandardError{
+				{
+					Code:   "400",
+					Title:  "Bad Request",
+					Detail: "Product telah dihapus sebelumnya",
+					Object: httputils.ErrorObject{},
+				},
+			}
+			httputils.WriteErrorResponse(writer, http.StatusBadRequest, respon)
+			return
+		}
+
 		respon := []httputils.StandardError{
 			{
 				Code:   "500",
