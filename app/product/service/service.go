@@ -14,6 +14,7 @@ type ProductLogic interface {
 	FindProductLogic(ctx context.Context, id int) (model.FindProductResponse, error)
 	FindProductAllLogic(ctx context.Context) ([]model.Product, error)
 	DeleteProductLogic(ctx context.Context, id int) error
+	UpdateProductLogic(ctx context.Context, id int, fields model.UpdateProductRequest) error
 }
 
 type productlogic struct {
@@ -128,5 +129,28 @@ func (l *productlogic) DeleteProductLogic(ctx context.Context, id int) error {
 
 	tx.Commit()
 	log.Printf("[%s][LOGIC] deleted product success with id: %d", ctx.Value("productId"), id)
+	return nil
+}
+
+func (l *productlogic) UpdateProductLogic(ctx context.Context, id int, fields model.UpdateProductRequest) error {
+	log.Printf("[%s][LOGIC] update product with id: %d", ctx.Value("productId"), id)
+
+	tx, err := l.db.Begin()
+
+	if err != nil {
+		log.Printf("[LOGIC] failed to update product :%v", err)
+		return err
+	}
+
+	err = l.ProductRepository.UpdateProduct(ctx, tx, id, fields)
+
+	if err != nil {
+		log.Printf("[LOGIC] failed to update product :%v", err)
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	log.Printf("[%s][LOGIC] update product success with id: %d", ctx.Value("productId"), id)
 	return nil
 }

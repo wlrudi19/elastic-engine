@@ -25,3 +25,10 @@ type FindProductResponse struct {
 	Amount      string `json:"amount"`
 	Stok        int    `json:"stok"`
 }
+
+type UpdateProductRequest struct {
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
+	Amount      *string `json:"amount"`
+	Stok        *int    `json:"stok"`
+}

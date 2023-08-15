@@ -6,6 +6,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/wlrudi19/elastic-engine/app/product/model"
 )
 
@@ -14,6 +15,7 @@ type ProductRepository interface {
 	FindProduct(ctx context.Context, tx *sql.Tx, id int) (model.FindProductResponse, error)
 	FindProductAll(ctx context.Context, tx *sql.Tx) ([]model.Product, error)
 	DeleteProduct(ctx context.Context, tx *sql.Tx, id int) error
+	UpdateProduct(ctx context.Context, tx *sql.Tx, id int, fields model.UpdateProductRequest) error
 }
 
 type productrepository struct {
@@ -118,5 +120,37 @@ func (pr *productrepository) DeleteProduct(ctx context.Context, tx *sql.Tx, id i
 		return err
 	}
 
+	return nil
+}
+
+func (pr *productrepository) UpdateProduct(ctx context.Context, tx *sql.Tx, id int, fields model.UpdateProductRequest) error {
+	log.Printf("[%s][QUERY] updating product with id: %d", ctx.Value("productId"), id)
+
+	updateBuilder := squirrel.Update("products").
+		Where(squirrel.Eq{"id": id})
+
+	if fields.Name != nil {
+		updateBuilder = updateBuilder.Set("name", *fields.Name)
+	}
+	if fields.Description != nil {
+		updateBuilder = updateBuilder.Set("description", *fields.Description)
+	}
+	if fields.Amount != nil {
+		updateBuilder = updateBuilder.Set("amount", *fields.Amount)
+	}
+	if fields.Stok != nil {
+		updateBuilder = updateBuilder.Set("stok", *fields.Stok)
+	}
+
+	query, args, err := updateBuilder.PlaceholderFormat(squirrel.Dollar).ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, query, args...)
+	if err != nil {
+		log.Printf("[QUERY] failed to update product, %v", err)
+		return err
+	}
 	return nil
 }
