@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/wlrudi19/elastic-engine/app/product/model"
 	"github.com/wlrudi19/elastic-engine/app/product/service"
@@ -32,7 +33,7 @@ func (h *producthandler) CreateProductHandler(writer http.ResponseWriter, req *h
 
 	if err != nil {
 		respon := []httputils.StandardError{
-			httputils.StandardError{
+			{
 				Code:   "400",
 				Title:  "Bad Request",
 				Detail: "Permintaan tidak valid. Format JSON tidak sesuai",
@@ -46,7 +47,7 @@ func (h *producthandler) CreateProductHandler(writer http.ResponseWriter, req *h
 	err = h.ProductLogic.CreateProductLogic(context.TODO(), jsonReq)
 	if err != nil {
 		respon := []httputils.StandardError{
-			httputils.StandardError{
+			{
 				Code:   "500",
 				Title:  "Internal server error",
 				Detail: "Terjadi kesalahan internal pada server",
@@ -70,7 +71,7 @@ func (h *producthandler) CreateProductHandler(writer http.ResponseWriter, req *h
 	responFix, err := json.Marshal(envelope)
 	if err != nil {
 		respon := []httputils.StandardError{
-			httputils.StandardError{
+			{
 				Code:   "500",
 				Title:  "Internal server error",
 				Detail: "Terjadi kesalahan internal pada server",
@@ -94,7 +95,7 @@ func (h *producthandler) FindProductHandler(writer http.ResponseWriter, req *htt
 
 	if err != nil {
 		respon := []httputils.StandardError{
-			httputils.StandardError{
+			{
 				Code:   "400",
 				Title:  "Bad Request",
 				Detail: "Permintaan tidak valid. Format JSON tidak sesuai",
@@ -107,9 +108,23 @@ func (h *producthandler) FindProductHandler(writer http.ResponseWriter, req *htt
 
 	var product = model.FindProductResponse{}
 	product, err = h.ProductLogic.FindProductLogic(context.TODO(), jsonReq.Id)
+
 	if err != nil {
+		if strings.Contains(err.Error(), "sql: no rows in result set") {
+			respon := []httputils.StandardError{
+				{
+					Code:   "404",
+					Title:  "Not found",
+					Detail: "Product not found",
+					Object: httputils.ErrorObject{},
+				},
+			}
+			httputils.WriteErrorResponse(writer, http.StatusInternalServerError, respon)
+			return
+		}
+
 		respon := []httputils.StandardError{
-			httputils.StandardError{
+			{
 				Code:   "500",
 				Title:  "Internal server error",
 				Detail: "Terjadi kesalahan internal pada server",
@@ -133,7 +148,7 @@ func (h *producthandler) FindProductHandler(writer http.ResponseWriter, req *htt
 	responFix, err := json.Marshal(envelope)
 	if err != nil {
 		respon := []httputils.StandardError{
-			httputils.StandardError{
+			{
 				Code:   "500",
 				Title:  "Internal server error",
 				Detail: "Terjadi kesalahan internal pada server",

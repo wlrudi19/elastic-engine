@@ -8,7 +8,7 @@ func NewProductRouter(productHandler ProductHandler) *chi.Mux {
 	router := chi.NewRouter()
 
 	router.Post("/api/products/create", productHandler.CreateProductHandler)
-	router.Post("/api/products/findbyId", productHandler.FindProductHandler)
+	router.Get("/api/products/findbyId", productHandler.FindProductHandler)
 
 	return router
 }

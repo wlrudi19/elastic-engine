@@ -27,13 +27,13 @@ func NewProductLogic(productRepository repository.ProductRepository, db *sql.DB)
 }
 
 func (l *productlogic) CreateProductLogic(ctx context.Context, req model.CreateProductRequest) error {
-	log.Printf("[%s] create new product: %s", ctx.Value("productName"), req.Name)
+	log.Printf("[%s][LOGIC] create new product: %s", ctx.Value("productName"), req.Name)
 
 	tx, err := l.db.Begin()
 
 	if err != nil {
-		log.Fatalf("failed to create product :%v", err)
-		//return err
+		log.Printf("[LOGIC] failed to create product :%v", err)
+		return err
 	}
 
 	product := model.Product{
@@ -46,34 +46,36 @@ func (l *productlogic) CreateProductLogic(ctx context.Context, req model.CreateP
 	err = l.ProductRepository.CreateProduct(ctx, tx, product)
 
 	if err != nil {
-		log.Fatalf("failed to create product :%v", err)
+		log.Printf("[LOGIC] failed to create product :%v", err)
 		tx.Rollback()
 		return err
 	}
 
 	tx.Commit()
+	log.Printf("[%s][LOGIC] created product success with id: %d", ctx.Value("productId"), product.Id)
 	return nil
 }
 
 func (l *productlogic) FindProductLogic(ctx context.Context, id int) (model.FindProductResponse, error) {
-	log.Printf("[%s] finding product by id: %d", ctx.Value("productId"), id)
+	log.Printf("[%s][LOGIC] find product with id: %d", ctx.Value("productId"), id)
+	var product model.FindProductResponse
 
 	tx, err := l.db.Begin()
 
 	if err != nil {
-		log.Fatalf("failed to find product :%v", err)
-		//return err
+		log.Printf("[LOGIC] failed to find product :%v", err)
+		return product, err
 	}
 
-	var product model.FindProductResponse
 	product, err = l.ProductRepository.FindProduct(ctx, tx, id)
 
 	if err != nil {
-		log.Fatalf("failed to find product :%v", err)
+		log.Printf("[LOGIC] failed to find product :%v", err)
 		tx.Rollback()
 		return product, err
 	}
 
 	tx.Commit()
+	log.Printf("[%s][LOGIC] product find successfulyy, id: %d", ctx.Value("productId"), id)
 	return product, nil
 }
