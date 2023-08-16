@@ -1,40 +1,51 @@
 package service
 
-type Service interface {
-	Sate(n, m int) int
-	Bakso(n, m int) int
+import (
+	"context"
+	"database/sql"
+	"log"
+
+	"github.com/wlrudi19/elastic-engine/app/user/model"
+	"github.com/wlrudi19/elastic-engine/app/user/repository"
+)
+
+type UserLogic interface {
+	FindUserLogic(ctx context.Context, email string) (model.UserResponse, error)
 }
 
-type service struct {
+type userlogic struct {
+	UserRepository repository.UserRepository
+	db             *sql.DB
 }
 
-type service_2 struct {
+func NewUserLogic(userRepository repository.UserRepository, db *sql.DB) UserLogic {
+	return &userlogic{
+		UserRepository: userRepository,
+		db:             db,
+	}
 }
 
-func New() Service {
-	return &service{}
-}
+func (l *userlogic) FindUserLogic(ctx context.Context, email string) (model.UserResponse, error) {
+	log.Printf("[%s][LOGIC] find user with email: %s", ctx.Value("userEmail"), email)
 
-func New_2() Service {
-	return &service_2{}
-}
+	var user model.UserResponse
 
-func (s *service) Sate(n, m int) int {
-	n, m = m, n
-	return n * m
-}
+	tx, err := l.db.Begin()
 
-func (s *service) Bakso(n, m int) int {
-	n, m = m, n
-	return n * m
-}
+	if err != nil {
+		log.Printf("[LOGIC] failed to find user :%v", err)
+		return user, err
+	}
 
-func (s *service_2) Sate(n, m int) int {
-	n, m = m, n
-	return n % m
-}
+	user, err = l.UserRepository.FindUser(ctx, tx, email)
 
-func (s *service_2) Bakso(n, m int) int {
-	n, m = m, n
-	return n - m
+	if err != nil {
+		log.Printf("[LOGIC] failed to find user :%v", err)
+		tx.Rollback()
+		return user, err
+	}
+
+	tx.Commit()
+	log.Printf("[%s][LOGIC] user find successfulyy, email: %s", ctx.Value("userEmail"), email)
+	return user, nil
 }
