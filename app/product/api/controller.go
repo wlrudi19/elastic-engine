@@ -94,7 +94,7 @@ func (h *producthandler) CreateProductHandler(writer http.ResponseWriter, req *h
 }
 
 func (h *producthandler) FindProductHandler(writer http.ResponseWriter, req *http.Request) {
-	var jsonReq model.FindProductRequest
+	var jsonReq model.ProductRequest
 
 	err := json.NewDecoder(req.Body).Decode(&jsonReq)
 
@@ -244,7 +244,7 @@ func (h *producthandler) FindProductAllHandler(writer http.ResponseWriter, req *
 }
 
 func (h *producthandler) DeleteProductAllHandler(writer http.ResponseWriter, req *http.Request) {
-	var jsonReq model.FindProductRequest
+	var jsonReq model.ProductRequest
 
 	err := json.NewDecoder(req.Body).Decode(&jsonReq)
 

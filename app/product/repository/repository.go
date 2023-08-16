@@ -108,7 +108,7 @@ func (pr *productrepository) DeleteProduct(ctx context.Context, tx *sql.Tx, id i
 
 	if deletedOn.Valid {
 		err = errors.New("product has been deleted before")
-		log.Printf("[QUERY] failed to deleting product:%v", err)
+		log.Printf("[QUERY] failed to deleting product: %v", err)
 		return err
 	}
 
@@ -147,10 +147,23 @@ func (pr *productrepository) UpdateProduct(ctx context.Context, tx *sql.Tx, id i
 		return err
 	}
 
-	_, err = tx.ExecContext(ctx, query, args...)
+	result, err := tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		log.Printf("[QUERY] failed to update product, %v", err)
 		return err
 	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Printf("[QUERY] failed to update product, %v", err)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		err := errors.New("sql: no rows in result set")
+		log.Printf("[QUERY] product not found, %v", err)
+		return err
+	}
+
 	return nil
 }
