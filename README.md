@@ -7,3 +7,4 @@ catatan:
 3. Perbaiki fungsi update [ok]
 4. perbaiki nama struck pada interface
 5. perbaiki struktur log
+6. tanyakan tentang middleware

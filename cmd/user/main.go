@@ -27,7 +27,7 @@ func main() {
 	userRepository := repository.NewUserRepository()
 	userLogic := service.NewUserLogic(userRepository, connDB)
 	userHandler := api.NewUserHandler(userLogic)
-	userRouter := api.NewProductRouter(userHandler)
+	userRouter := api.NewUserRouter(userHandler)
 
 	server := http.Server{
 		Addr:    "localhost:7655",

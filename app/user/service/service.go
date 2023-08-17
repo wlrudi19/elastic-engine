@@ -7,7 +7,7 @@ import (
 
 	"github.com/wlrudi19/elastic-engine/app/user/model"
 	"github.com/wlrudi19/elastic-engine/app/user/repository"
-	"github.com/wlrudi19/elastic-engine/helper/jwt"
+	"github.com/wlrudi19/elastic-engine/infrastructure/jwt"
 )
 
 type UserLogic interface {

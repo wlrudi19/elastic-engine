@@ -9,6 +9,7 @@ import (
 	"github.com/wlrudi19/elastic-engine/app/product/repository"
 	"github.com/wlrudi19/elastic-engine/app/product/service"
 	"github.com/wlrudi19/elastic-engine/config"
+	"github.com/wlrudi19/elastic-engine/infrastructure/middlewares"
 )
 
 func main() {
@@ -28,10 +29,11 @@ func main() {
 	productLogic := service.NewProductLogic(productRepository, connDB)
 	productHanlder := api.NewProductHandler(productLogic)
 	productRouter := api.NewProductRouter(productHanlder)
+	authMiddleware := middlewares.NewAuth(productRouter)
 
 	server := http.Server{
 		Addr:    "localhost:7654",
-		Handler: productRouter,
+		Handler: authMiddleware,
 	}
 
 	fmt.Println("starting server on port 7654...")
