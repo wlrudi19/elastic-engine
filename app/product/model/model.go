@@ -15,7 +15,7 @@ type CreateProductRequest struct {
 	Stok        int    `json:"stok"`
 }
 
-type FindProductRequest struct {
+type ProductRequest struct {
 	Id int `json:"id"`
 }
 
