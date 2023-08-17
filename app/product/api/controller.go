@@ -165,7 +165,7 @@ func (h *producthandler) FindProductHandler(writer http.ResponseWriter, req *htt
 	}
 
 	contentType := httputils.NewContentTypeDecorator("application/json")
-	httpStatus := http.StatusCreated
+	httpStatus := http.StatusOK
 
 	httputils.WriteResponse(writer, responFix, httpStatus, contentType)
 }
@@ -238,7 +238,7 @@ func (h *producthandler) FindProductAllHandler(writer http.ResponseWriter, req *
 	}
 
 	contentType := httputils.NewContentTypeDecorator("application/json")
-	httpStatus := http.StatusCreated
+	httpStatus := http.StatusOK
 
 	httputils.WriteResponse(writer, responFix, httpStatus, contentType)
 }
@@ -324,7 +324,7 @@ func (h *producthandler) DeleteProductAllHandler(writer http.ResponseWriter, req
 	}
 
 	contentType := httputils.NewContentTypeDecorator("application/json")
-	httpStatus := http.StatusCreated
+	httpStatus := http.StatusOK
 
 	httputils.WriteResponse(writer, responFix, httpStatus, contentType)
 }
@@ -415,7 +415,7 @@ func (h *producthandler) UpdateProductHandler(writer http.ResponseWriter, req *h
 	}
 
 	contentType := httputils.NewContentTypeDecorator("application/json")
-	httpStatus := http.StatusCreated
+	httpStatus := http.StatusOK
 
 	httputils.WriteResponse(writer, responFix, httpStatus, contentType)
 }

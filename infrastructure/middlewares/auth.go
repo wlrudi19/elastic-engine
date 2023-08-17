@@ -9,50 +9,69 @@ import (
 )
 
 type Auth interface {
-	ServeHTTP(writer http.ResponseWriter, request *http.Request)
+	Authenticate(http.Handler) http.Handler
 	ValidateToken(tokenString string) (*jwt.Token, error)
 }
 
 type auth struct {
-	Handler http.Handler
 }
 
-func NewAuth(handler http.Handler) Auth {
-	return &auth{
-		Handler: handler,
-	}
+func NewAuth() Auth {
+	return &auth{}
 }
 
-func (au *auth) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	tokenString := request.Header.Get("Authorization")
-	if tokenString == "" {
-		respon := []httputils.StandardError{
-			{
-				Code:   "401",
-				Title:  "Unauthorized",
-				Detail: "You are not authorized to access this resource",
-				Object: httputils.ErrorObject{},
-			},
+func (au *auth) Authenticate(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		//tokenString := request.Header.Get("Authorization")
+		tokenCookie, err := request.Cookie("access-token")
+		log.Printf("ini token %v", tokenCookie)
+		if err != nil {
+			log.Printf("ini error %v", err)
+			respon := []httputils.StandardError{
+				{
+					Code:   "401",
+					Title:  "Unauthorized",
+					Detail: "You are not authorized to access this resource",
+					Object: httputils.ErrorObject{},
+				},
+			}
+			httputils.WriteErrorResponse(writer, http.StatusBadRequest, respon)
+			return
 		}
-		httputils.WriteErrorResponse(writer, http.StatusBadRequest, respon)
-		return
-	}
 
-	token, err := au.ValidateToken(tokenString)
-	if err != nil || !token.Valid {
-		respon := []httputils.StandardError{
-			{
-				Code:   "401",
-				Title:  "Unauthorized",
-				Detail: "You are not authorized to access this resource",
-				Object: httputils.ErrorObject{},
-			},
+		//get token value
+		tokenString := tokenCookie.Value
+		log.Printf("ini token 2 %s", tokenCookie)
+		if tokenString == "" {
+			respon := []httputils.StandardError{
+				{
+					Code:   "401",
+					Title:  "Unauthorized",
+					Detail: "You are not authorized to access this resource",
+					Object: httputils.ErrorObject{},
+				},
+			}
+			httputils.WriteErrorResponse(writer, http.StatusBadRequest, respon)
+			return
 		}
-		httputils.WriteErrorResponse(writer, http.StatusBadRequest, respon)
-		return
-	}
 
-	au.Handler.ServeHTTP(writer, request)
+		token, err := au.ValidateToken(tokenString)
+		log.Printf("ini token 3%v", token)
+		if err != nil || !token.Valid {
+			respon := []httputils.StandardError{
+				{
+					Code:   "401",
+					Title:  "Unauthorized",
+					Detail: "You are not authorized to access this resource",
+					Object: httputils.ErrorObject{},
+				},
+			}
+			httputils.WriteErrorResponse(writer, http.StatusBadRequest, respon)
+			return
+		}
+
+		next.ServeHTTP(writer, request)
+	})
 }
 
 func (au *auth) ValidateToken(tokenString string) (*jwt.Token, error) {

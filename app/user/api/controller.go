@@ -14,6 +14,7 @@ import (
 type UserHandler interface {
 	FindUserHandler(writer http.ResponseWriter, req *http.Request)
 	LoginUserHandler(writer http.ResponseWriter, req *http.Request)
+	LogoutUserHandler(writer http.ResponseWriter, req *http.Request)
 }
 
 type userhandler struct {
@@ -98,7 +99,7 @@ func (h *userhandler) FindUserHandler(writer http.ResponseWriter, req *http.Requ
 	}
 
 	contentType := httputils.NewContentTypeDecorator("application/json")
-	httpStatus := http.StatusCreated
+	httpStatus := http.StatusOK
 
 	httputils.WriteResponse(writer, responFix, httpStatus, contentType)
 }
@@ -160,6 +161,14 @@ func (h *userhandler) LoginUserHandler(writer http.ResponseWriter, req *http.Req
 		Data:   &loginToken,
 	}
 
+	//set cookie
+	http.SetCookie(writer, &http.Cookie{
+		Name:     "access-token",
+		Path:     "/",
+		Value:    loginToken.AccessToken,
+		HttpOnly: true,
+	})
+
 	responFix, err := json.Marshal(envelope)
 	if err != nil {
 		respon := []httputils.StandardError{
@@ -175,7 +184,45 @@ func (h *userhandler) LoginUserHandler(writer http.ResponseWriter, req *http.Req
 	}
 
 	contentType := httputils.NewContentTypeDecorator("application/json")
-	httpStatus := http.StatusCreated
+	httpStatus := http.StatusOK
+
+	httputils.WriteResponse(writer, responFix, httpStatus, contentType)
+}
+
+func (h *userhandler) LogoutUserHandler(writer http.ResponseWriter, req *http.Request) {
+	status := httputils.StandardStatus{
+		ErrorCode: 200,
+		Message:   "User logout successfully",
+	}
+
+	envelope := httputils.StandardEnvelope{
+		Status: &status,
+	}
+
+	responFix, err := json.Marshal(envelope)
+	if err != nil {
+		respon := []httputils.StandardError{
+			{
+				Code:   "500",
+				Title:  "Internal server error",
+				Detail: "Terjadi kesalahan internal pada server",
+				Object: httputils.ErrorObject{},
+			},
+		}
+		httputils.WriteErrorResponse(writer, http.StatusInternalServerError, respon)
+		return
+	}
+
+	http.SetCookie(writer, &http.Cookie{
+		Name:     "access-token",
+		Path:     "/",
+		Value:    "",
+		HttpOnly: true,
+		MaxAge:   -1,
+	})
+
+	contentType := httputils.NewContentTypeDecorator("application/json")
+	httpStatus := http.StatusOK
 
 	httputils.WriteResponse(writer, responFix, httpStatus, contentType)
 }
