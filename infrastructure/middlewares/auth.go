@@ -75,6 +75,7 @@ func (au *auth) Authenticate(next http.Handler) http.Handler {
 }
 
 func (au *auth) ValidateToken(tokenString string) (*jwt.Token, error) {
+	log.Printf("ini tokenString, %s", tokenString)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return []byte("x-elastic-engine"), nil
 	})
@@ -84,5 +85,6 @@ func (au *auth) ValidateToken(tokenString string) (*jwt.Token, error) {
 		return nil, err
 	}
 
+	log.Printf("ini token validate %v", token)
 	return token, nil
 }

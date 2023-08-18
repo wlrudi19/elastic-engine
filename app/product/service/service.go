@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"log"
 
 	"github.com/wlrudi19/elastic-engine/app/product/model"
@@ -19,20 +18,18 @@ type ProductLogic interface {
 
 type productlogic struct {
 	ProductRepository repository.ProductRepository
-	db                *sql.DB
 }
 
-func NewProductLogic(productRepository repository.ProductRepository, db *sql.DB) ProductLogic {
+func NewProductLogic(productRepository repository.ProductRepository) ProductLogic {
 	return &productlogic{
 		ProductRepository: productRepository,
-		db:                db,
 	}
 }
 
 func (l *productlogic) CreateProductLogic(ctx context.Context, req model.CreateProductRequest) error {
 	log.Printf("[%s][LOGIC] create new product: %s", ctx.Value("productName"), req.Name)
 
-	tx, err := l.db.Begin()
+	tx, err := l.ProductRepository.WithTransaction()
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to create product :%v", err)
@@ -64,14 +61,14 @@ func (l *productlogic) FindProductLogic(ctx context.Context, id int) (model.Find
 
 	var product model.FindProductResponse
 
-	tx, err := l.db.Begin()
+	tx, err := l.ProductRepository.WithTransaction()
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to find product :%v", err)
 		return product, err
 	}
 
-	product, err = l.ProductRepository.FindProduct(ctx, tx, id)
+	product, err = l.ProductRepository.FindProduct(ctx, id)
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to find product :%v", err)
@@ -89,14 +86,14 @@ func (l *productlogic) FindProductAllLogic(ctx context.Context) ([]model.Product
 
 	var products []model.Product
 
-	tx, err := l.db.Begin()
+	tx, err := l.ProductRepository.WithTransaction()
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to find products :%v", err)
 		return products, err
 	}
 
-	products, err = l.ProductRepository.FindProductAll(ctx, tx)
+	products, err = l.ProductRepository.FindProductAll(ctx)
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to find product s:%v", err)
@@ -112,7 +109,7 @@ func (l *productlogic) FindProductAllLogic(ctx context.Context) ([]model.Product
 func (l *productlogic) DeleteProductLogic(ctx context.Context, id int) error {
 	log.Printf("[%s][LOGIC] delete product with id: %d", ctx.Value("productId"), id)
 
-	tx, err := l.db.Begin()
+	tx, err := l.ProductRepository.WithTransaction()
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to delete product :%v", err)
@@ -135,7 +132,7 @@ func (l *productlogic) DeleteProductLogic(ctx context.Context, id int) error {
 func (l *productlogic) UpdateProductLogic(ctx context.Context, id int, fields model.UpdateProductRequest) error {
 	log.Printf("[%s][LOGIC] update product with id: %d", ctx.Value("productId"), id)
 
-	tx, err := l.db.Begin()
+	tx, err := l.ProductRepository.WithTransaction()
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to update product :%v", err)

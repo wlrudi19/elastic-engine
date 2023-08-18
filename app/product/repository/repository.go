@@ -12,17 +12,30 @@ import (
 
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, tx *sql.Tx, product model.Product) error
-	FindProduct(ctx context.Context, tx *sql.Tx, id int) (model.FindProductResponse, error)
-	FindProductAll(ctx context.Context, tx *sql.Tx) ([]model.Product, error)
+	FindProduct(ctx context.Context, id int) (model.FindProductResponse, error)
+	FindProductAll(ctx context.Context) ([]model.Product, error)
 	DeleteProduct(ctx context.Context, tx *sql.Tx, id int) error
 	UpdateProduct(ctx context.Context, tx *sql.Tx, id int, fields model.UpdateProductRequest) error
+	WithTransaction() (*sql.Tx, error)
 }
 
 type productrepository struct {
+	db *sql.DB
 }
 
-func NewProductRepository() ProductRepository {
-	return &productrepository{}
+func NewProductRepository(db *sql.DB) ProductRepository {
+	return &productrepository{
+		db: db,
+	}
+}
+
+func (pr *productrepository) WithTransaction() (*sql.Tx, error) {
+	tx, err := pr.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	return tx, nil
 }
 
 func (pr *productrepository) CreateProduct(ctx context.Context, tx *sql.Tx, product model.Product) error {
@@ -41,13 +54,13 @@ func (pr *productrepository) CreateProduct(ctx context.Context, tx *sql.Tx, prod
 	return nil
 }
 
-func (pr *productrepository) FindProduct(ctx context.Context, tx *sql.Tx, id int) (model.FindProductResponse, error) {
+func (pr *productrepository) FindProduct(ctx context.Context, id int) (model.FindProductResponse, error) {
 	log.Printf("[%s[QUERY]] finding product with id: %d", ctx.Value("productId"), id)
 
 	var product model.FindProductResponse
 
 	sql := "select name, description, amount, stok from products p where deleted_on isnull and id = $1"
-	err := tx.QueryRowContext(ctx, sql, id).Scan(
+	err := pr.db.QueryRowContext(ctx, sql, id).Scan(
 		&product.Name,
 		&product.Description,
 		&product.Amount,
@@ -62,16 +75,17 @@ func (pr *productrepository) FindProduct(ctx context.Context, tx *sql.Tx, id int
 	return product, nil
 }
 
-func (pr *productrepository) FindProductAll(ctx context.Context, tx *sql.Tx) ([]model.Product, error) {
+func (pr *productrepository) FindProductAll(ctx context.Context) ([]model.Product, error) {
 	log.Printf("[%s][QUERY] find all products", ctx.Value("productAll"))
 
 	sql := "select id, name, description, amount, stok from products where deleted_on isnull"
-	rows, err := tx.QueryContext(ctx, sql)
+	rows, err := pr.db.QueryContext(ctx, sql)
 
 	if err != nil {
 		log.Printf("[QUERY]] failed to finding products, %v", err)
 		return nil, err
 	}
+	defer rows.Close()
 
 	var products []model.Product
 	for rows.Next() {
@@ -101,6 +115,7 @@ func (pr *productrepository) DeleteProduct(ctx context.Context, tx *sql.Tx, id i
 
 	checkSQL := "SELECT deleted_on FROM products WHERE id = $1"
 	err := tx.QueryRowContext(ctx, checkSQL, id).Scan(&deletedOn)
+
 	if err != nil {
 		log.Printf("[QUERY] failed to deleting product: %v", err)
 		return err
@@ -148,6 +163,7 @@ func (pr *productrepository) UpdateProduct(ctx context.Context, tx *sql.Tx, id i
 	}
 
 	result, err := tx.ExecContext(ctx, query, args...)
+
 	if err != nil {
 		log.Printf("[QUERY] failed to update product, %v", err)
 		return err

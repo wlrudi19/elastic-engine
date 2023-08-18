@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/wlrudi19/elastic-engine/app/product/model"
@@ -244,6 +245,9 @@ func (h *producthandler) FindProductAllHandler(writer http.ResponseWriter, req *
 }
 
 func (h *producthandler) DeleteProductAllHandler(writer http.ResponseWriter, req *http.Request) {
+	//set context
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 	var jsonReq model.ProductRequest
 
 	err := json.NewDecoder(req.Body).Decode(&jsonReq)
@@ -261,7 +265,7 @@ func (h *producthandler) DeleteProductAllHandler(writer http.ResponseWriter, req
 		return
 	}
 
-	err = h.ProductLogic.DeleteProductLogic(context.TODO(), jsonReq.Id)
+	err = h.ProductLogic.DeleteProductLogic(ctx, jsonReq.Id)
 	if err != nil {
 		if strings.Contains(err.Error(), "sql: no rows in result set") {
 			respon := []httputils.StandardError{
