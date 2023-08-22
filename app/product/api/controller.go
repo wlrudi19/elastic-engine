@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/wlrudi19/elastic-engine/app/product/model"
@@ -18,7 +17,7 @@ type ProductHandler interface {
 	CreateProductHandler(writer http.ResponseWriter, req *http.Request)
 	FindProductHandler(writer http.ResponseWriter, req *http.Request)
 	FindProductAllHandler(writer http.ResponseWriter, req *http.Request)
-	DeleteProductAllHandler(writer http.ResponseWriter, req *http.Request)
+	DeleteProductHandler(writer http.ResponseWriter, req *http.Request)
 	UpdateProductHandler(writer http.ResponseWriter, req *http.Request)
 }
 
@@ -50,7 +49,7 @@ func (h *producthandler) CreateProductHandler(writer http.ResponseWriter, req *h
 		return
 	}
 
-	err = h.ProductLogic.CreateProductLogic(context.TODO(), jsonReq)
+	err = h.ProductLogic.CreateProductLogic(context.Background(), jsonReq)
 	if err != nil {
 		respon := []httputils.StandardError{
 			{
@@ -113,7 +112,7 @@ func (h *producthandler) FindProductHandler(writer http.ResponseWriter, req *htt
 	}
 
 	var product = model.FindProductResponse{}
-	product, err = h.ProductLogic.FindProductLogic(context.TODO(), jsonReq.Id)
+	product, err = h.ProductLogic.FindProductLogic(context.Background(), jsonReq.Id)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "sql: no rows in result set") {
@@ -186,7 +185,7 @@ func (h *producthandler) FindProductAllHandler(writer http.ResponseWriter, req *
 	}
 
 	var products []model.Product
-	products, err := h.ProductLogic.FindProductAllLogic(context.TODO())
+	products, err := h.ProductLogic.FindProductAllLogic(context.Background())
 
 	if err != nil {
 		if strings.Contains(err.Error(), "sql: no rows in result set") {
@@ -244,10 +243,10 @@ func (h *producthandler) FindProductAllHandler(writer http.ResponseWriter, req *
 	httputils.WriteResponse(writer, responFix, httpStatus, contentType)
 }
 
-func (h *producthandler) DeleteProductAllHandler(writer http.ResponseWriter, req *http.Request) {
+func (h *producthandler) DeleteProductHandler(writer http.ResponseWriter, req *http.Request) {
 	//set context
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	//ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	//defer cancel()
 	var jsonReq model.ProductRequest
 
 	err := json.NewDecoder(req.Body).Decode(&jsonReq)
@@ -265,7 +264,7 @@ func (h *producthandler) DeleteProductAllHandler(writer http.ResponseWriter, req
 		return
 	}
 
-	err = h.ProductLogic.DeleteProductLogic(ctx, jsonReq.Id)
+	err = h.ProductLogic.DeleteProductLogic(context.Background(), jsonReq.Id)
 	if err != nil {
 		if strings.Contains(err.Error(), "sql: no rows in result set") {
 			respon := []httputils.StandardError{
@@ -366,7 +365,7 @@ func (h *producthandler) UpdateProductHandler(writer http.ResponseWriter, req *h
 		return
 	}
 
-	err = h.ProductLogic.UpdateProductLogic(context.TODO(), productId, jsonReq)
+	err = h.ProductLogic.UpdateProductLogic(context.Background(), productId, jsonReq)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "sql: no rows in result set") {

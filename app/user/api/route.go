@@ -13,7 +13,6 @@ func NewUserRouter(userHandler UserHandler) *chi.Mux {
 	router.Route("/api/users", func(r chi.Router) {
 		r.With(authMiddleware.Authenticate).Get("/findbyEmail", userHandler.FindUserHandler)
 		r.Post("/login", userHandler.LoginUserHandler)
-		r.Post("/logout", userHandler.LogoutUserHandler)
 	})
 
 	return router

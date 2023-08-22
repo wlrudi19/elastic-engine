@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"log"
 
 	"github.com/wlrudi19/elastic-engine/app/user/model"
@@ -17,13 +16,11 @@ type UserLogic interface {
 
 type userlogic struct {
 	UserRepository repository.UserRepository
-	db             *sql.DB
 }
 
-func NewUserLogic(userRepository repository.UserRepository, db *sql.DB) UserLogic {
+func NewUserLogic(userRepository repository.UserRepository) UserLogic {
 	return &userlogic{
 		UserRepository: userRepository,
-		db:             db,
 	}
 }
 
@@ -32,7 +29,7 @@ func (l *userlogic) FindUserLogic(ctx context.Context, email string) (model.User
 
 	var user model.UserResponse
 
-	tx, err := l.db.Begin()
+	tx, err := l.UserRepository.WithTransaction()
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to find user :%v", err)

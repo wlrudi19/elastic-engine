@@ -11,13 +11,26 @@ import (
 
 type UserRepository interface {
 	FindUser(ctx context.Context, tx *sql.Tx, email string) (model.UserResponse, error)
+	WithTransaction() (*sql.Tx, error)
 }
 
 type userrepository struct {
+	db *sql.DB
 }
 
-func NewUserRepository() UserRepository {
-	return &userrepository{}
+func NewUserRepository(db *sql.DB) UserRepository {
+	return &userrepository{
+		db: db,
+	}
+}
+
+func (pr *userrepository) WithTransaction() (*sql.Tx, error) {
+	tx, err := pr.db.Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	return tx, nil
 }
 
 func (ur *userrepository) FindUser(ctx context.Context, tx *sql.Tx, email string) (model.UserResponse, error) {
@@ -32,7 +45,7 @@ func (ur *userrepository) FindUser(ctx context.Context, tx *sql.Tx, email string
 		log.Printf("[QUERY] user not found, %v", err)
 	}
 
-	err = tx.QueryRowContext(ctx, query, args...).Scan(
+	err = ur.db.QueryRowContext(ctx, query, args...).Scan(
 		&user.Id,
 		&user.Name,
 		&user.Created,
