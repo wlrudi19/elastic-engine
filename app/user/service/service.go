@@ -6,7 +6,7 @@ import (
 
 	"github.com/wlrudi19/elastic-engine/app/user/model"
 	"github.com/wlrudi19/elastic-engine/app/user/repository"
-	"github.com/wlrudi19/elastic-engine/infrastructure/jwt"
+	"github.com/wlrudi19/elastic-engine/infrastructure/middlewares"
 )
 
 type UserLogic interface {
@@ -52,7 +52,7 @@ func (l *userlogic) LoginUserLogic(ctx context.Context, email string) (model.Log
 		return login, err
 	}
 
-	token, err := jwt.NewJWT().GenerateAccessToken(user.Id, email)
+	token, err := middlewares.GenerateAccessToken(user.Id, email)
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to generate access token, %v", err)

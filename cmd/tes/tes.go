@@ -3,14 +3,15 @@ package main
 import (
 	"log"
 
-	"github.com/wlrudi19/elastic-engine/infrastructure/jwt"
+	"github.com/wlrudi19/elastic-engine/infrastructure/middlewares"
 )
 
 func main() {
-	jwtGet := jwt.NewJWT()
+	jwtGenerate := middlewares.GenerateAccessToken
+	jwtValidation := middlewares.ValidateToken
 	id := 7
 	email := "joni@gmail.com"
-	generateNih, err := jwtGet.GenerateAccessToken(id, email)
+	generateNih, err := jwtGenerate(id, email)
 
 	if err != nil {
 		log.Printf("ini error %v", err)
@@ -18,7 +19,7 @@ func main() {
 
 	log.Printf("ini token %s", generateNih)
 
-	err = jwtGet.ValidateToken(generateNih)
+	err = jwtValidation(generateNih)
 
 	if err != nil {
 		log.Printf("error validate: %v", err)
