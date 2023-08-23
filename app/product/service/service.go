@@ -27,7 +27,7 @@ func NewProductLogic(productRepository repository.ProductRepository) ProductLogi
 }
 
 func (l *productlogic) CreateProductLogic(ctx context.Context, req model.CreateProductRequest) error {
-	log.Printf("[%s][LOGIC] create new product: %s", ctx.Value("productName"), req.Name)
+	log.Printf("[LOGIC] create new product: %s", req.Name)
 
 	tx, err := l.ProductRepository.WithTransaction()
 
@@ -52,12 +52,12 @@ func (l *productlogic) CreateProductLogic(ctx context.Context, req model.CreateP
 	}
 
 	tx.Commit()
-	log.Printf("[%s][LOGIC] created product success with id: %d", ctx.Value("productId"), product.Id)
+	log.Printf("[LOGIC] created product success with id: %d", product.Id)
 	return nil
 }
 
 func (l *productlogic) FindProductLogic(ctx context.Context, id int) (model.FindProductResponse, error) {
-	log.Printf("[%s][LOGIC] find product with id: %d", ctx.Value("productId"), id)
+	log.Printf("[LOGIC] find product with id: %d", id)
 
 	var product model.FindProductResponse
 
@@ -68,12 +68,12 @@ func (l *productlogic) FindProductLogic(ctx context.Context, id int) (model.Find
 		return product, err
 	}
 
-	log.Printf("[%s][LOGIC] product find successfulyy, id: %d", ctx.Value("productId"), id)
+	log.Printf("[LOGIC] product find successfulyy, id: %d", id)
 	return product, nil
 }
 
 func (l *productlogic) FindProductAllLogic(ctx context.Context) ([]model.Product, error) {
-	log.Printf("[%s][LOGIC] find all products", ctx.Value("productAll"))
+	log.Printf("[LOGIC] find all products")
 
 	var products []model.Product
 
@@ -84,12 +84,12 @@ func (l *productlogic) FindProductAllLogic(ctx context.Context) ([]model.Product
 		return products, err
 	}
 
-	log.Printf("[%s][LOGIC] products find successfulyy", ctx.Value("productId"))
+	log.Printf("[LOGIC] products find successfulyy")
 	return products, nil
 }
 
 func (l *productlogic) DeleteProductLogic(ctx context.Context, id int) error {
-	log.Printf("[%s][LOGIC] delete product with id: %d", ctx.Value("productId"), id)
+	log.Printf("[LOGIC] delete product with id: %d", id)
 
 	tx, err := l.ProductRepository.WithTransaction()
 
@@ -107,12 +107,12 @@ func (l *productlogic) DeleteProductLogic(ctx context.Context, id int) error {
 	}
 
 	tx.Commit()
-	log.Printf("[%s][LOGIC] deleted product success with id: %d", ctx.Value("productId"), id)
+	log.Printf("[LOGIC] deleted product success with id: %d", id)
 	return nil
 }
 
 func (l *productlogic) UpdateProductLogic(ctx context.Context, id int, fields model.UpdateProductRequest) error {
-	log.Printf("[%s][LOGIC] update product with id: %d", ctx.Value("productId"), id)
+	log.Printf("[LOGIC] update product with id: %d", id)
 
 	tx, err := l.ProductRepository.WithTransaction()
 
@@ -130,6 +130,6 @@ func (l *productlogic) UpdateProductLogic(ctx context.Context, id int, fields mo
 	}
 
 	tx.Commit()
-	log.Printf("[%s][LOGIC] update product success with id: %d", ctx.Value("productId"), id)
+	log.Printf("[LOGIC] update product success with id: %d", id)
 	return nil
 }

@@ -12,8 +12,8 @@ func NewProductRouter(productHandler ProductHandler) *chi.Mux {
 
 	router.Route("/api/products", func(r chi.Router) {
 		r.With(authMiddleware).Get("/create", productHandler.CreateProductHandler)
-		r.With(authMiddleware).Get("/findbyId", productHandler.FindProductHandler)
-		r.With(authMiddleware).Get("/findall", productHandler.FindProductAllHandler)
+		r.Get("/findbyId", productHandler.FindProductHandler)
+		r.Get("/findall", productHandler.FindProductAllHandler)
 		r.With(authMiddleware).Get("/deletebyId", productHandler.DeleteProductHandler)
 		r.With(authMiddleware).Get("/update/{product_id}", productHandler.UpdateProductHandler)
 	})
