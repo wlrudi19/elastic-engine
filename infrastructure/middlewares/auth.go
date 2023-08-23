@@ -4,13 +4,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/golang-jwt/jwt"
 	httputils "github.com/wlrudi19/elastic-engine/helper/http"
+	"github.com/wlrudi19/elastic-engine/infrastructure/jwt"
 )
 
 type Auth interface {
 	Authenticate(http.Handler) http.Handler
-	ValidateToken(tokenString string) (*jwt.Token, error)
 }
 
 type auth struct {
@@ -22,26 +21,9 @@ func NewAuth() Auth {
 
 func (au *auth) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		//tokenString := request.Header.Get("Authorization")
-		tokenCookie, err := request.Cookie("access-token")
-		log.Printf("ini token %v", tokenCookie)
-		if err != nil {
-			log.Printf("ini error %v", err)
-			respon := []httputils.StandardError{
-				{
-					Code:   "401",
-					Title:  "Unauthorized",
-					Detail: "You are not authorized to access this resource",
-					Object: httputils.ErrorObject{},
-				},
-			}
-			httputils.WriteErrorResponse(writer, http.StatusBadRequest, respon)
-			return
-		}
+		tokenString := request.Header.Get("Authorization")
+		log.Printf("[MW] token string: %s", tokenString)
 
-		//get token value
-		tokenString := tokenCookie.Value
-		log.Printf("ini token 2 %s", tokenCookie)
 		if tokenString == "" {
 			respon := []httputils.StandardError{
 				{
@@ -55,14 +37,14 @@ func (au *auth) Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		token, err := au.ValidateToken(tokenString)
-		log.Printf("ini token 3%v", token)
-		if err != nil || !token.Valid {
+		err := jwt.NewJWT().ValidateToken(tokenString)
+
+		if err != nil {
 			respon := []httputils.StandardError{
 				{
 					Code:   "401",
 					Title:  "Unauthorized",
-					Detail: "You are not authorized to access this resource",
+					Detail: "Your access token invalid",
 					Object: httputils.ErrorObject{},
 				},
 			}
@@ -72,17 +54,4 @@ func (au *auth) Authenticate(next http.Handler) http.Handler {
 
 		next.ServeHTTP(writer, request)
 	})
-}
-
-func (au *auth) ValidateToken(tokenString string) (*jwt.Token, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte("x-elastic-engine"), nil
-	})
-
-	if err != nil {
-		log.Printf("[JWT] failed to parse token, %v", err)
-		return nil, err
-	}
-
-	return token, nil
 }

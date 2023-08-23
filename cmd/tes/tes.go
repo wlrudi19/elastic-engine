@@ -17,4 +17,10 @@ func main() {
 	}
 
 	log.Printf("ini token %s", generateNih)
+
+	err = jwtGet.ValidateToken(generateNih)
+
+	if err != nil {
+		log.Printf("error validate: %v", err)
+	}
 }

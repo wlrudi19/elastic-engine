@@ -24,8 +24,8 @@ func main() {
 	fmt.Println("ELASTIC ENGINE PROJECT")
 	log.Printf("connected to postgres successfulyy")
 
-	userRepository := repository.NewUserRepository()
-	userLogic := service.NewUserLogic(userRepository, connDB)
+	userRepository := repository.NewUserRepository(connDB)
+	userLogic := service.NewUserLogic(userRepository)
 	userHandler := api.NewUserHandler(userLogic)
 	userRouter := api.NewUserRouter(userHandler)
 
