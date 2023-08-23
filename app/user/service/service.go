@@ -6,7 +6,7 @@ import (
 
 	"github.com/wlrudi19/elastic-engine/app/user/model"
 	"github.com/wlrudi19/elastic-engine/app/user/repository"
-	"github.com/wlrudi19/elastic-engine/infrastructure/jwt"
+	"github.com/wlrudi19/elastic-engine/infrastructure/middlewares"
 )
 
 type UserLogic interface {
@@ -25,32 +25,23 @@ func NewUserLogic(userRepository repository.UserRepository) UserLogic {
 }
 
 func (l *userlogic) FindUserLogic(ctx context.Context, email string) (model.UserResponse, error) {
-	log.Printf("[%s][LOGIC] find user with email: %s", ctx.Value("userEmail"), email)
+	log.Printf("[LOGIC] find user with email: %s", email)
 
 	var user model.UserResponse
 
-	tx, err := l.UserRepository.WithTransaction()
+	user, err := l.UserRepository.FindUser(ctx, email)
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to find user :%v", err)
 		return user, err
 	}
 
-	user, err = l.UserRepository.FindUser(ctx, tx, email)
-
-	if err != nil {
-		log.Printf("[LOGIC] failed to find user :%v", err)
-		tx.Rollback()
-		return user, err
-	}
-
-	tx.Commit()
-	log.Printf("[%s][LOGIC] user find successfulyy, email: %s", ctx.Value("userEmail"), email)
+	log.Printf("[LOGIC] user find successfulyy, email: %s", email)
 	return user, nil
 }
 
 func (l *userlogic) LoginUserLogic(ctx context.Context, email string) (model.LoginResponse, error) {
-	log.Printf("[%s][LOGIC] login with email: %s", ctx.Value("loginEmail"), email)
+	log.Printf("[LOGIC] login with email: %s", email)
 
 	var login model.LoginResponse
 
@@ -61,7 +52,7 @@ func (l *userlogic) LoginUserLogic(ctx context.Context, email string) (model.Log
 		return login, err
 	}
 
-	token, err := jwt.NewJWT().GenerateAccessToken(user.Id, email)
+	token, err := middlewares.GenerateAccessToken(user.Id, email)
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to generate access token, %v", err)
@@ -73,6 +64,6 @@ func (l *userlogic) LoginUserLogic(ctx context.Context, email string) (model.Log
 		AccessToken: token,
 	}
 
-	log.Printf("[%s][LOGIC] login successfulyy, with token: %s", ctx.Value("loginToken"), token)
+	log.Printf("[LOGIC] login successfulyy, with token: %s", token)
 	return login, nil
 }

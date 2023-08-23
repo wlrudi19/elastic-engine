@@ -8,14 +8,14 @@ import (
 func NewProductRouter(productHandler ProductHandler) *chi.Mux {
 	router := chi.NewRouter()
 
-	authMiddleware := middlewares.NewAuth()
+	authMiddleware := middlewares.Authenticate
 
 	router.Route("/api/products", func(r chi.Router) {
-		r.With(authMiddleware.Authenticate).Get("/create", productHandler.CreateProductHandler)
-		r.With(authMiddleware.Authenticate).Get("/findbyId", productHandler.FindProductHandler)
-		r.With(authMiddleware.Authenticate).Get("/findall", productHandler.FindProductAllHandler)
-		r.With(authMiddleware.Authenticate).Get("/deletebyId", productHandler.DeleteProductHandler)
-		r.With(authMiddleware.Authenticate).Get("/update/{product_id}", productHandler.UpdateProductHandler)
+		r.With(authMiddleware).Post("/create", productHandler.CreateProductHandler)
+		r.Get("/findbyId", productHandler.FindProductHandler)
+		r.Get("/findall", productHandler.FindProductAllHandler)
+		r.With(authMiddleware).Put("/deletebyId", productHandler.DeleteProductHandler)
+		r.With(authMiddleware).Put("/update/{product_id}", productHandler.UpdateProductHandler)
 	})
 
 	return router

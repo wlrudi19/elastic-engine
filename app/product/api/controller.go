@@ -1,7 +1,6 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -49,7 +48,7 @@ func (h *producthandler) CreateProductHandler(writer http.ResponseWriter, req *h
 		return
 	}
 
-	err = h.ProductLogic.CreateProductLogic(context.Background(), jsonReq)
+	err = h.ProductLogic.CreateProductLogic(req.Context(), jsonReq)
 	if err != nil {
 		respon := []httputils.StandardError{
 			{
@@ -112,7 +111,7 @@ func (h *producthandler) FindProductHandler(writer http.ResponseWriter, req *htt
 	}
 
 	var product = model.FindProductResponse{}
-	product, err = h.ProductLogic.FindProductLogic(context.Background(), jsonReq.Id)
+	product, err = h.ProductLogic.FindProductLogic(req.Context(), jsonReq.Id)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "sql: no rows in result set") {
@@ -185,7 +184,7 @@ func (h *producthandler) FindProductAllHandler(writer http.ResponseWriter, req *
 	}
 
 	var products []model.Product
-	products, err := h.ProductLogic.FindProductAllLogic(context.Background())
+	products, err := h.ProductLogic.FindProductAllLogic(req.Context())
 
 	if err != nil {
 		if strings.Contains(err.Error(), "sql: no rows in result set") {
@@ -264,7 +263,7 @@ func (h *producthandler) DeleteProductHandler(writer http.ResponseWriter, req *h
 		return
 	}
 
-	err = h.ProductLogic.DeleteProductLogic(context.Background(), jsonReq.Id)
+	err = h.ProductLogic.DeleteProductLogic(req.Context(), jsonReq.Id)
 	if err != nil {
 		if strings.Contains(err.Error(), "sql: no rows in result set") {
 			respon := []httputils.StandardError{
@@ -365,7 +364,7 @@ func (h *producthandler) UpdateProductHandler(writer http.ResponseWriter, req *h
 		return
 	}
 
-	err = h.ProductLogic.UpdateProductLogic(context.Background(), productId, jsonReq)
+	err = h.ProductLogic.UpdateProductLogic(req.Context(), productId, jsonReq)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "sql: no rows in result set") {

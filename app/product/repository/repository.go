@@ -39,7 +39,7 @@ func (pr *productrepository) WithTransaction() (*sql.Tx, error) {
 }
 
 func (pr *productrepository) CreateProduct(ctx context.Context, tx *sql.Tx, product model.Product) error {
-	log.Printf("[%s][QUERY] creating product: %s", ctx.Value("productName"), product.Name)
+	log.Printf("[QUERY] creating product: %s", product.Name)
 
 	var id int
 	sql := "insert into products (name,description,amount,stok) values ($1, $2, $3, $4) RETURNING id"
@@ -55,7 +55,7 @@ func (pr *productrepository) CreateProduct(ctx context.Context, tx *sql.Tx, prod
 }
 
 func (pr *productrepository) FindProduct(ctx context.Context, id int) (model.FindProductResponse, error) {
-	log.Printf("[%s[QUERY]] finding product with id: %d", ctx.Value("productId"), id)
+	log.Printf("[QUERY] finding product with id: %d", id)
 
 	var product model.FindProductResponse
 
@@ -68,7 +68,7 @@ func (pr *productrepository) FindProduct(ctx context.Context, id int) (model.Fin
 	)
 
 	if err != nil {
-		log.Printf("[QUERY]] failed to finding product, %v", err)
+		log.Printf("[QUERY] failed to finding product, %v", err)
 		return product, err
 	}
 
@@ -76,7 +76,7 @@ func (pr *productrepository) FindProduct(ctx context.Context, id int) (model.Fin
 }
 
 func (pr *productrepository) FindProductAll(ctx context.Context) ([]model.Product, error) {
-	log.Printf("[%s][QUERY] find all products", ctx.Value("productAll"))
+	log.Printf("[QUERY] find all products")
 
 	sql := "select id, name, description, amount, stok from products where deleted_on isnull"
 	rows, err := pr.db.QueryContext(ctx, sql)
@@ -109,7 +109,7 @@ func (pr *productrepository) FindProductAll(ctx context.Context) ([]model.Produc
 }
 
 func (pr *productrepository) DeleteProduct(ctx context.Context, tx *sql.Tx, id int) error {
-	log.Printf("[%s][QUERY] deleting product with id: %d", ctx.Value("productId"), id)
+	log.Printf("[QUERY] deleting product with id: %d", id)
 
 	var deletedOn sql.NullTime
 
@@ -139,7 +139,7 @@ func (pr *productrepository) DeleteProduct(ctx context.Context, tx *sql.Tx, id i
 }
 
 func (pr *productrepository) UpdateProduct(ctx context.Context, tx *sql.Tx, id int, fields model.UpdateProductRequest) error {
-	log.Printf("[%s][QUERY] updating product with id: %d", ctx.Value("productId"), id)
+	log.Printf("[QUERY] updating product with id: %d", id)
 
 	updateBuilder := squirrel.Update("products").
 		Where(squirrel.Eq{"id": id})

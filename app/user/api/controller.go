@@ -9,6 +9,7 @@ import (
 	"github.com/wlrudi19/elastic-engine/app/user/model"
 	"github.com/wlrudi19/elastic-engine/app/user/service"
 	httputils "github.com/wlrudi19/elastic-engine/helper/http"
+	"github.com/wlrudi19/elastic-engine/infrastructure/middlewares"
 )
 
 type UserHandler interface {
@@ -28,25 +29,11 @@ func NewUserHandler(userLogic service.UserLogic) UserHandler {
 }
 
 func (h *userhandler) FindUserHandler(writer http.ResponseWriter, req *http.Request) {
-	var jsonReq model.UserRequest
-
-	err := json.NewDecoder(req.Body).Decode(&jsonReq)
-
-	if err != nil {
-		respon := []httputils.StandardError{
-			{
-				Code:   "400",
-				Title:  "Bad Request",
-				Detail: "Permintaan tidak valid. Format JSON tidak sesuai",
-				Object: httputils.ErrorObject{},
-			},
-		}
-		httputils.WriteErrorResponse(writer, http.StatusBadRequest, respon)
-		return
-	}
-
 	var user = model.UserResponse{}
-	user, err = h.UserLogic.FindUserLogic(context.Background(), jsonReq.Email)
+
+	email := req.Context().Value(middlewares.ContextKeyUserEmail).(string)
+
+	user, err := h.UserLogic.FindUserLogic(req.Context(), email)
 
 	if err != nil {
 		if strings.Contains(err.Error(), "sql: no rows in result set") {
