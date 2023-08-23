@@ -8,18 +8,7 @@ import (
 	"github.com/wlrudi19/elastic-engine/infrastructure/jwt"
 )
 
-type Auth interface {
-	Authenticate(http.Handler) http.Handler
-}
-
-type auth struct {
-}
-
-func NewAuth() Auth {
-	return &auth{}
-}
-
-func (au *auth) Authenticate(next http.Handler) http.Handler {
+func Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		tokenString := request.Header.Get("Authorization")
 		log.Printf("[MW] token string: %s", tokenString)

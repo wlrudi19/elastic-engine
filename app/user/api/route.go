@@ -8,10 +8,10 @@ import (
 func NewUserRouter(userHandler UserHandler) *chi.Mux {
 	router := chi.NewRouter()
 
-	authMiddleware := middlewares.NewAuth()
+	authMiddleware := middlewares.Authenticate
 
 	router.Route("/api/users", func(r chi.Router) {
-		r.With(authMiddleware.Authenticate).Get("/findbyEmail", userHandler.FindUserHandler)
+		r.With(authMiddleware).Get("/findbyEmail", userHandler.FindUserHandler)
 		r.Post("/login", userHandler.LoginUserHandler)
 	})
 
