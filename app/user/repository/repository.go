@@ -34,7 +34,7 @@ func (pr *userrepository) WithTransaction() (*sql.Tx, error) {
 }
 
 func (ur *userrepository) FindUser(ctx context.Context, email string) (model.UserResponse, error) {
-	log.Printf("[%s][QUERY] finding user with email: %s", ctx.Value("userEmail"), email)
+	log.Printf("[QUERY] finding user with email: %s", email)
 
 	var user model.UserResponse
 

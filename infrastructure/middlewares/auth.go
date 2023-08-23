@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net/http"
@@ -8,6 +9,13 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	httputils "github.com/wlrudi19/elastic-engine/helper/http"
+)
+
+//define context key for context userEmail
+type contextKey string
+
+const (
+	ContextKeyUserEmail contextKey = "userEmail"
 )
 
 func Authenticate(next http.Handler) http.Handler {
@@ -28,7 +36,7 @@ func Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		err := ValidateToken(tokenString)
+		claims, err := ValidateToken(tokenString)
 
 		if err != nil {
 			respon := []httputils.StandardError{
@@ -43,7 +51,23 @@ func Authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(writer, request)
+		email, ok := claims["Email"].(string)
+
+		if !ok {
+			respon := []httputils.StandardError{
+				{
+					Code:   "401",
+					Title:  "Unauthorized",
+					Detail: "Your access token invalid",
+					Object: httputils.ErrorObject{},
+				},
+			}
+			httputils.WriteErrorResponse(writer, http.StatusBadRequest, respon)
+			return
+		}
+
+		ctx := context.WithValue(request.Context(), ContextKeyUserEmail, email)
+		next.ServeHTTP(writer, request.WithContext(ctx))
 	})
 }
 
@@ -68,12 +92,12 @@ func GenerateAccessToken(userId int, email string) (string, error) {
 	return tokenString, nil
 }
 
-func ValidateToken(tokenString string) error {
+func ValidateToken(tokenString string) (map[string]interface{}, error) {
 	log.Printf("[JWT] validate tokenString, %s", tokenString)
 
 	secretKey := []byte("x-elastic-engine")
 
-	//parsing & validasi metode
+	//parsing & validasi metode hashing
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
@@ -82,28 +106,20 @@ func ValidateToken(tokenString string) error {
 	})
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims) //return is bool
 
 	if !ok || !token.Valid {
-		return errors.New("token invalid")
+		return nil, errors.New("token invalid")
 	}
-
-	// get payload map
-	// harusnya buat validasi emailnya tapi ada masalah pas manggil fungsi FindUserLogic
-	userId := int(claims["Id"].(float64))
-	username := claims["Email"].(string)
-
-	log.Println("user id:", userId)
-	log.Println("email:", username)
 
 	expTime := time.Unix(int64(claims["exp"].(float64)), 0)
 
 	if expTime.Before(time.Now()) {
-		return errors.New("token has expired")
+		return nil, errors.New("token has expired")
 	}
 
-	return nil
+	return claims, nil
 }

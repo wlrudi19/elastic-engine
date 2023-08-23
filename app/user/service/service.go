@@ -25,7 +25,7 @@ func NewUserLogic(userRepository repository.UserRepository) UserLogic {
 }
 
 func (l *userlogic) FindUserLogic(ctx context.Context, email string) (model.UserResponse, error) {
-	log.Printf("[%s][LOGIC] find user with email: %s", ctx.Value("userEmail"), email)
+	log.Printf("[LOGIC] find user with email: %s", email)
 
 	var user model.UserResponse
 
@@ -36,12 +36,12 @@ func (l *userlogic) FindUserLogic(ctx context.Context, email string) (model.User
 		return user, err
 	}
 
-	log.Printf("[%s][LOGIC] user find successfulyy, email: %s", ctx.Value("userEmail"), email)
+	log.Printf("[LOGIC] user find successfulyy, email: %s", email)
 	return user, nil
 }
 
 func (l *userlogic) LoginUserLogic(ctx context.Context, email string) (model.LoginResponse, error) {
-	log.Printf("[%s][LOGIC] login with email: %s", ctx.Value("loginEmail"), email)
+	log.Printf("[LOGIC] login with email: %s", email)
 
 	var login model.LoginResponse
 
@@ -64,6 +64,6 @@ func (l *userlogic) LoginUserLogic(ctx context.Context, email string) (model.Log
 		AccessToken: token,
 	}
 
-	log.Printf("[%s][LOGIC] login successfulyy, with token: %s", ctx.Value("loginToken"), token)
+	log.Printf("[LOGIC] login successfulyy, with token: %s", token)
 	return login, nil
 }

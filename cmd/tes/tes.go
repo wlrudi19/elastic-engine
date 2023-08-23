@@ -19,9 +19,15 @@ func main() {
 
 	log.Printf("ini token %s", generateNih)
 
-	err = jwtValidation(generateNih)
+	claims, err := jwtValidation(generateNih)
 
 	if err != nil {
-		log.Printf("error validate: %v", err)
+		log.Println("token invalid")
+	}
+
+	email, ok := claims["Email"].(string)
+
+	if !ok {
+		log.Printf("email kosong: %s", email)
 	}
 }
