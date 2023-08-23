@@ -65,6 +65,7 @@ func (j *jwtImpl) ValidateToken(tokenString string) error {
 	}
 
 	// get payload map
+	// harusnya buat validasi emailnya tapi ada masalah pas manggil fungsi FindUserLogic
 	userId := int(claims["Id"].(float64))
 	username := claims["Email"].(string)
 
