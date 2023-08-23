@@ -29,22 +29,13 @@ func (l *userlogic) FindUserLogic(ctx context.Context, email string) (model.User
 
 	var user model.UserResponse
 
-	tx, err := l.UserRepository.WithTransaction()
+	user, err := l.UserRepository.FindUser(ctx, email)
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to find user :%v", err)
 		return user, err
 	}
 
-	user, err = l.UserRepository.FindUser(ctx, tx, email)
-
-	if err != nil {
-		log.Printf("[LOGIC] failed to find user :%v", err)
-		tx.Rollback()
-		return user, err
-	}
-
-	tx.Commit()
 	log.Printf("[%s][LOGIC] user find successfulyy, email: %s", ctx.Value("userEmail"), email)
 	return user, nil
 }

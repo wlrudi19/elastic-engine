@@ -61,22 +61,13 @@ func (l *productlogic) FindProductLogic(ctx context.Context, id int) (model.Find
 
 	var product model.FindProductResponse
 
-	tx, err := l.ProductRepository.WithTransaction()
+	product, err := l.ProductRepository.FindProduct(ctx, id)
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to find product :%v", err)
 		return product, err
 	}
 
-	product, err = l.ProductRepository.FindProduct(ctx, id)
-
-	if err != nil {
-		log.Printf("[LOGIC] failed to find product :%v", err)
-		tx.Rollback()
-		return product, err
-	}
-
-	tx.Commit()
 	log.Printf("[%s][LOGIC] product find successfulyy, id: %d", ctx.Value("productId"), id)
 	return product, nil
 }
@@ -86,22 +77,13 @@ func (l *productlogic) FindProductAllLogic(ctx context.Context) ([]model.Product
 
 	var products []model.Product
 
-	tx, err := l.ProductRepository.WithTransaction()
-
-	if err != nil {
-		log.Printf("[LOGIC] failed to find products :%v", err)
-		return products, err
-	}
-
-	products, err = l.ProductRepository.FindProductAll(ctx)
+	products, err := l.ProductRepository.FindProductAll(ctx)
 
 	if err != nil {
 		log.Printf("[LOGIC] failed to find product s:%v", err)
-		tx.Rollback()
 		return products, err
 	}
 
-	tx.Commit()
 	log.Printf("[%s][LOGIC] products find successfulyy", ctx.Value("productId"))
 	return products, nil
 }

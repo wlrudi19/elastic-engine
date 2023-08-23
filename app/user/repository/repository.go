@@ -10,7 +10,7 @@ import (
 )
 
 type UserRepository interface {
-	FindUser(ctx context.Context, tx *sql.Tx, email string) (model.UserResponse, error)
+	FindUser(ctx context.Context, email string) (model.UserResponse, error)
 	WithTransaction() (*sql.Tx, error)
 }
 
@@ -33,7 +33,7 @@ func (pr *userrepository) WithTransaction() (*sql.Tx, error) {
 	return tx, nil
 }
 
-func (ur *userrepository) FindUser(ctx context.Context, tx *sql.Tx, email string) (model.UserResponse, error) {
+func (ur *userrepository) FindUser(ctx context.Context, email string) (model.UserResponse, error) {
 	log.Printf("[%s][QUERY] finding user with email: %s", ctx.Value("userEmail"), email)
 
 	var user model.UserResponse

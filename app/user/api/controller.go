@@ -30,6 +30,8 @@ func NewUserHandler(userLogic service.UserLogic) UserHandler {
 func (h *userhandler) FindUserHandler(writer http.ResponseWriter, req *http.Request) {
 	var jsonReq model.UserRequest
 
+	//ctx := req.Context().Value("")
+
 	err := json.NewDecoder(req.Body).Decode(&jsonReq)
 
 	if err != nil {
