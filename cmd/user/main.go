@@ -13,13 +13,14 @@ import (
 
 func main() {
 	loadConfig := config.LoanConfig()
-	connDB, err := config.ConnectConfig(loadConfig.Database)
+	connDB, connRedis, err := config.ConnectConfig(loadConfig.Database, loadConfig.Redis)
 
 	if err != nil {
 		log.Fatalf("error connecting to postgres :%v", err)
 		return
 	}
 	defer connDB.Close()
+	defer connRedis.Close()
 
 	fmt.Println("ELASTIC ENGINE PROJECT")
 	log.Printf("connected to postgres successfulyy")
