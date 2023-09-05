@@ -29,11 +29,15 @@ func (l *userlogic) FindUserLogic(ctx context.Context, email string) (model.User
 
 	var user model.UserResponse
 
-	user, err := l.UserRepository.FindUser(ctx, email)
+	user, err := l.UserRepository.FindUserRedis(ctx, email)
 
 	if err != nil {
-		log.Printf("[LOGIC] failed to find user :%v", err)
-		return user, err
+		user, err := l.UserRepository.FindUser(ctx, email)
+		if err != nil {
+			log.Printf("[LOGIC] failed to find user :%v", err)
+			return user, err
+		}
+		return user, nil
 	}
 
 	log.Printf("[LOGIC] user find successfulyy, email: %s", email)
