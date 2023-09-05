@@ -52,7 +52,7 @@ func (ur *userrepository) GetUserRedis(ctx context.Context, email string) ([]byt
 }
 
 func (ur *userrepository) SetUserRedis(ctx context.Context, email string, json []byte) error {
-	userCacheKey := "user" + email
+	userCacheKey := "user:" + email
 	err := ur.redis.Set(ctx, userCacheKey, json, 24*time.Hour).Err()
 	if err != nil {
 		return err
