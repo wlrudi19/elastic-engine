@@ -11,7 +11,6 @@ import (
 	httputils "github.com/wlrudi19/elastic-engine/helper/http"
 )
 
-//define context key for context userEmail
 type contextKey string
 
 const (
