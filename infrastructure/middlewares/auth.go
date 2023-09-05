@@ -77,7 +77,7 @@ func GenerateAccessToken(userId int, email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"Id":    userId,
 		"Email": email,
-		"exp":   time.Now().Add(time.Minute * 1).Unix(), //time expired 1 menit
+		"exp":   time.Now().Add(time.Minute * 10).Unix(), //time expired 1 menit
 	})
 
 	//tandatangan token dengan secret key

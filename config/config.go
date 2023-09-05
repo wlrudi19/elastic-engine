@@ -1,11 +1,12 @@
 package config
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
 
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v8"
 	_ "github.com/lib/pq"
 )
 
@@ -46,7 +47,7 @@ func ConnectConfig(config DatabaseConfig, redisConfig RedisConfig) (*sql.DB, *re
 		DB:       1,
 	})
 
-	_, err = redisClient.Ping().Result()
+	_, err = redisClient.Ping(context.Background()).Result()
 
 	if err != nil {
 		log.Fatalf("error connecting to redis: %v", err)
